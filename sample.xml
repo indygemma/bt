@@ -1,0 +1,53 @@
+<sequence name="addition">
+    <double>
+        <add in="a,b" out="result" />
+    </double>
+    <print in="result" />
+</sequence>
+
+<call-sequence name="addition" a="1" b="2" />
+
+<sequence name="pagerank" in="url">
+    <pagerank in="url" out="result" />
+    <jinja in="result" out="report">
+        The pagerank for {{ url }} is {{ result.pagerank }}.
+    </jinja>
+</sequence>
+
+<sequence name="sitecheck" in="url, keywords">
+    <sequence>
+        <sitecheck in="url, keywords" out="result" />
+        <jinja in="result" out="report">
+            Report for {{ url }}
+            
+            {% if result.google %}
+            Google Analysis:
+
+            {% if result.google.keywords_analysis %}
+            Keywords Analysis exists here!
+            {% endif %}
+
+            {% endif %}
+        </jinja>
+</sequence>
+
+<sequence name="reddit-monitor">
+    <crawl in="url"
+           url="http://www.reddit.com"
+           out="crawl_result" />
+    <json>
+        <xslt in="crawl_result"
+              out="links"
+              links="//links/lol">
+               [
+                <xslt:for-each value="$links">
+                    {
+                        'url':   <xslt:value-of select="/url"   />,
+                        'title': <xslt:value-of select="/title" />
+                    }
+                </xslt:for-each>
+               ]
+        </xslt>
+    </json>
+
+</sequence>
