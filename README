@@ -1,6 +1,4 @@
-bt is a simple python implementation of the Behaviour Tree concept, which is mostly used in game development for driving AI behaviour.
-But since actions can be user-defined the concept is not bound to that domain. For example, by encapsulating webservices as actions,
-bt can be utilized as a simple orchestration mechanism to coordinate workflows.
+bt is a simple python implementation of the Behaviour Tree concept, which is mostly used in game development for driving AI behaviour. But since actions can be user-defined the concept is not bound to that domain. For example, by encapsulating webservices as actions, bt can be utilized as a simple orchestration mechanism to coordinate workflows.
 
 Quick Example
 =============
@@ -44,25 +42,19 @@ Decorators are wrappers around actions, which modify its result in some way. Her
     >>> import json
     >>> tree.registerDecorator("json", lambda x: json.loads(x))
 
-The first decorator "identity" does nothing but return the result it receives as is. The second one, "json", is more interesting.
-It assumes that the input is a JSON string and loads it as a native python construct.
+The first decorator "identity" does nothing but return the result it receives as is. The second one, "json", is more interesting. It assumes that the input is a JSON string and loads it as a native python construct.
 
 Behaviour Constructs
 ====================
 
 bt implements two behaviour constructs: sequence & selector.
 
-Inside a sequence, actions are executed in a sequence until a non-true result is returned, from which point the sequence is aborted.
-Selectors do the same as sequences, with the difference, that it aborts as soon as one of the actions return a true result. Both of
-these constructs are infinitely stackable allowing interesting behaviour to emerge.
+Inside a sequence, actions are executed in a sequence until a non-true result is returned, from which point the sequence is aborted. Selectors do the same as sequences, with the difference, that it aborts as soon as one of the actions return a true result. Both of these constructs are infinitely stackable allowing interesting behaviour to emerge.
 
 Blackboard
 ==========
 
-Now that we've defined actions, decorators and behaviour constructs, we can introduce the blackboard. The blackboard solves the problem
-of inter-action persistence for results between actions. Actions can read from the blackboard, which are named resources. At the same time, actions
-can write their results to the blackboard, by naming their result. Knowing this, decorators do nothing but take the result from an action,
-modify it and write it back under the same name onto the blackboard, before other actions access that resource.
+Now that we've defined actions, decorators and behaviour constructs, we can introduce the blackboard. The blackboard solves the problem of inter-action persistence for results between actions. Actions can read from the blackboard, which are named resources. At the same time, actions can write their results to the blackboard, by naming their result. Knowing this, decorators do nothing but take the result from an action, modify it and write it back under the same name onto the blackboard, before other actions access that resource.
 
 Example
 =======
@@ -123,8 +115,7 @@ Finally, given this XML string
     ...
     [1,2,3]
 
-What just happened? We just turned an html unordered list "<ul><li>1</li>...</ul>" into a python list by utilizing xpath, jinja and json.
-This example is silly of course. Checkout more examples (and hopefully useful) in jinja_test.py.
+What just happened? We just turned an html unordered list "<ul><li>1</li>...</ul>" into a python list by utilizing xpath, jinja and json. This example is silly of course. Checkout more examples (and hopefully useful) in jinja_test.py.
 
 DEPENDENCIES
 ============
@@ -135,5 +126,4 @@ DEPENDENCIES
 Unittests are available in tests.py which you can run via
 
     $ python tests.py
-
-
+ 
