@@ -115,14 +115,29 @@ tree.registerAction("json-list", json_list)
 tree.registerAction("crawl", crawl)
 tree.registerDecorator("print", print_decorator)
 tree.parseXML(xml)
-#result = tree.call("tes3", content="""
-#<ul>
-#    <li>1</li>
-#    <li>2</li>
-#    <li>3</li>
-#</ul>
-#""")
-result = tree.call("dp-sites")
-#result = tree.call("reddit")
 
-print json.dumps(json.loads(result), indent=4)
+#
+# Example 1: Call test
+#
+result = tree.call("test", content="""
+<ul>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+</ul>
+""")
+print result
+
+#
+# Example 2: Call dp-sites
+#
+#result = tree.call("dp-sites")
+#print json.dumps(json.loads(result), indent=4)
+
+#
+# Example 3: Call reddit
+#
+#result = tree.call("reddit")
+#print json.dumps(json.loads(result), indent=4)
+
+

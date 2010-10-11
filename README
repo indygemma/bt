@@ -1,0 +1,139 @@
+bt is a simple python implementation of the Behaviour Tree concept, which is mostly used in game development for driving AI behaviour.
+But since actions can be user-defined the concept is not bound to that domain. For example, by encapsulating webservices as actions,
+bt can be utilized as a simple orchestration mechanism to coordinate workflows.
+
+Quick Example
+=============
+
+Given the following xml
+
+    <tree>
+      <sequence name="reddit">
+        <crawl in="url" out="content"
+               url="http://www.reddit.com" />
+        <json-list in="content"
+                   elements="//a[@class='title ']"
+                   element ='"{{ item.text | escape }}"' />
+      </sequence>
+    </tree>
+
+parsing and running it with bt results in executing the following actions in sequence:
+
+    1) crawl the website www.reddit.com
+    2) run the json-list action, which extracts all links (where the xpath "//a[@class='title' ']" matches) and return that result as a JSON string
+
+Nothing tells us WHERE those actions are executed, in the simplest case both actions run on the same machine and in a distributed context each action call triggers webservices, which execute the actions remotely.
+
+Actions
+=======
+
+A unit of work is executed inside an action. After initializing a BehaviourTree actions are registered like the following:
+
+    >>> import bt
+    >>> tree = bt.BehaviourTree()
+    >>> tree.registerAction("add", lambda x,y: x+y)
+
+In this case a simple "add" action is registered, which does what it says: add two things together.
+
+Decorator
+=========
+
+Decorators are wrappers around actions, which modify its result in some way. Here are some sample decorators:
+
+    >>> tree.registerDecorator("identity", lambda x: x)
+    >>> import json
+    >>> tree.registerDecorator("json", lambda x: json.loads(x))
+
+The first decorator "identity" does nothing but return the result it receives as is. The second one, "json", is more interesting.
+It assumes that the input is a JSON string and loads it as a native python construct.
+
+Behaviour Constructs
+====================
+
+bt implements two behaviour constructs: sequence & selector.
+
+Inside a sequence, actions are executed in a sequence until a non-true result is returned, from which point the sequence is aborted.
+Selectors do the same as sequences, with the difference, that it aborts as soon as one of the actions return a true result. Both of
+these constructs are infinitely stackable allowing interesting behaviour to emerge.
+
+Blackboard
+==========
+
+Now that we've defined actions, decorators and behaviour constructs, we can introduce the blackboard. The blackboard solves the problem
+of inter-action persistence for results between actions. Actions can read from the blackboard, which are named resources. At the same time, actions
+can write their results to the blackboard, by naming their result. Knowing this, decorators do nothing but take the result from an action,
+modify it and write it back under the same name onto the blackboard, before other actions access that resource.
+
+Example
+=======
+
+Here is an example which utilizes all the things explained above. First, two actions are defined.
+
+    def xpath_action(body, content):
+        html_parser = etree.HTMLParser()
+        html = etree.fromstring(content, html_parser)
+        return html.xpath(body)
+
+    def jinja_action(body, items, **kwargs):
+        template = jinja2.Template(body)
+        return template.render(list=items)
+
+the first applies an xpath expression to a given body of text, and the second one utilizes the jinja templating system to render items into a template.
+
+And now a decorator:
+
+    def json_decorator(x):
+        return json.loads(x)
+
+This is the same as above, it simply loads a given JSON expression as a python construct.
+
+    >>> tree = bt.BehaviourTree()
+    >>> tree.registerDecorator("json", json_decorator)
+    >>> tree.registerAction("xpath", xpath_action)
+    >>> tree.registerAction("jinja", jinja_action)
+
+Finally, given this XML string
+
+    >>> xml = """
+    ... <tree>
+    ...   <sequence name="test">
+    ...     <xpath in="content" out="list">
+    ...       <![CDATA[
+    ...       //ul/li
+    ...       ]]>
+    ...     </xpath>
+    ...     <json>
+    ...       <jinja in="list">
+    ...         [
+    ...         {% for item in list %}
+    ...           {{ item.text }} {% if not loop.last %},{% endif %}
+    ...         {% endfor %}
+    ...         ]
+    ...       </jinja>
+    ...     </json>
+    ...    </sequence>
+    ...  </tree>
+    ...
+    >>> tree.call("test", content="""
+    ... <ul>
+    ...   <li>1</li>
+    ...   <li>2</li>
+    ...   <li>3</li>
+    ... </ul>
+    ...
+    [1,2,3]
+
+What just happened? We just turned an html unordered list "<ul><li>1</li>...</ul>" into a python list by utilizing xpath, jinja and json.
+This example is silly of course. Checkout more examples (and hopefully useful) in jinja_test.py.
+
+DEPENDENCIES
+============
+
+    - lxml
+    - jinja2 (for jinja_test.py if you want to run it)
+
+Unittests are available in tests.py which you can run via
+
+    $ python tests.py
+
+
